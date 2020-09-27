@@ -28,7 +28,7 @@
                             <p>{{object.details|linebreaks}}</p>
                         </dd>
                     </dl>
-                    <a href="" class="btn btn-lg btn-outline-primary text-uppercase"><i class="fas fa-shopping-cart"></i> Add to cart</a>
+                    <a href="{% url 'order_app:add' pk=object.pk %}" class="btn btn-lg btn-outline-primary text-uppercase"><i class="fas fa-shopping-cart"></i> Add to cart</a>
                 </article>
             </aside>
         </div>
