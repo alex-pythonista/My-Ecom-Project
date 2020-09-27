@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'login_app',
     'shop_app',
     'django_cleanup.apps.CleanupConfig',
+    'order_app',
 ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
