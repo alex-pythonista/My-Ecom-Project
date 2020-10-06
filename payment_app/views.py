@@ -2,7 +2,7 @@ from django.shortcuts import redirect, render, HttpResponseRedirect
 from django.urls import reverse
 from .forms import BillingForm
 from .models import BillingAddress
-from order_app.models import Order
+from order_app.models import Order, Cart
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
@@ -85,15 +85,39 @@ def complete(request):
     if request.method == 'POST' or request.method == 'post':
         payment_data = request.POST
         status = payment_data['status']
-        val_id = payment_data['val_id']
-        tran_id = payment_data['tran_id']
-        bank_tran_id = payment_data['bank_tran_id']
 
         if status == 'VALID':
+            val_id = payment_data['val_id']
+            tran_id = payment_data['tran_id']
             messages.success(request, f'Your payment completed successfully')
+            return HttpResponseRedirect(reverse('payment_app:purchase', kwargs={'val_id': val_id, 'tran_id': tran_id}))
         elif status == 'FAILED':
             messages.warning(request, f'Your payment failed! Please try again')
-        else:
-            pass
 
     return render(request, 'payment_app/complete.html', {})
+
+@login_required
+def purchase(request, val_id, tran_id):
+    order_qs = Order.objects.filter(user=request.user, ordered=False)
+    order = order_qs[0]
+    orderID = tran_id
+    order.ordered = True
+    order.order_id = orderID
+    order.payment_id = val_id
+    order.save()
+    cart_items = Cart.objects.filter(user=request.user, purchased=False)
+    for item in cart_items:
+        item.purchased = True
+        item.save()
+    return HttpResponseRedirect(reverse('shop_app:home'))
+
+@login_required
+def order_view(request):
+    try:
+        orders = Order.objects.filter(user=request.user, ordered=True)
+        context = {'orders': orders}
+    except:
+        messages.warning(request, "You do not have an active order")
+        return redirect('shop_app:home')
+    
+    return render(request, 'payment_app/order.html', context)
